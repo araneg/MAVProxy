@@ -1225,6 +1225,14 @@ if __name__ == '__main__':
         #print('Signal handler called with signal', signum)
         if mpstate.status.exit:
             print('Clean shutdown impossible, forcing an exit')
+            try:
+                import psutil
+                import os
+                children = psutil.Process(os.getpid()).children(recursive=True)
+                for p in children:
+                   p.kill()
+            except:
+                pass
             sys.exit(0)
         else:
             mpstate.status.exit = True
