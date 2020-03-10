@@ -1221,18 +1221,17 @@ if __name__ == '__main__':
 
     mpstate.rl = rline.rline("MAV> ", mpstate)
 
+    def unload_all():
+        for (m,pm) in mpstate.modules:
+            if hasattr(m, 'unload'):
+                print("Unloading module %s" % m.name)
+                m.unload()
+
     def quit_handler(signum = None, frame = None):
         #print('Signal handler called with signal', signum)
         if mpstate.status.exit:
             print('Clean shutdown impossible, forcing an exit')
-            try:
-                import psutil
-                import os
-                children = psutil.Process(os.getpid()).children(recursive=True)
-                for p in children:
-                   p.kill()
-            except:
-                pass
+            unload_all()
             sys.exit(0)
         else:
             mpstate.status.exit = True
@@ -1386,10 +1385,7 @@ if __name__ == '__main__':
         yappi.get_func_stats().print_all()
         yappi.get_thread_stats().print_all()
 
-    #this loop executes after leaving the above loop and is for cleanup on exit
-    for (m,pm) in mpstate.modules:
-        if hasattr(m, 'unload'):
-            print("Unloading module %s" % m.name)
-            m.unload()
+    #this executes after leaving the above loop and is for cleanup on exit
+    unload_all()
 
     sys.exit(1)
